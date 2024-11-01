@@ -65,7 +65,7 @@ You can add more training examples to improve the AI's performance.
 Run the upload script to send your training data to OpenAI:
 
 ```bash
-npx ts-node scripts/upload-file.ts
+npm run train:upload
 ```
 
 This will output a File ID. Copy this ID and update your `.env` file's `OPENAI_TRAINING_FILE_ID`.
@@ -75,18 +75,34 @@ This will output a File ID. Copy this ID and update your `.env` file's `OPENAI_T
 Start the fine-tuning process:
 
 ```bash
-npx ts-node scripts/create-finetune.ts
+npm run train:create
 ```
 
 This will output a Fine-tune Job ID. The process may take several minutes to complete.
 
-### 4. Update Environment Variables
+### 4. Monitor Training Progress
+
+Check status of all fine-tuning jobs:
+
+```env
+npm run train:status
+```
+
+Check status of a specific job:
+
+```env
+npm run train:status <job-id>
+```
+
+### 5. Update Environment Variables
 
 Once fine-tuning is complete, update your `.env` file with the new model ID:
 
 ```env
 FINE_TUNED_MODEL=ft:gpt-4o-mini-2024-07-18:your-org::your-new-model-id
 ```
+
+Now your game will use the newly trained model for the AI opponent.
 
 ## Running the Game
 
