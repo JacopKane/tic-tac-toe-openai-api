@@ -1,0 +1,10 @@
+{"messages": [{"role": "user", "content": "Game state: [['', '', ''], ['', '', ''], ['', '', '']]. You're 'O'. What's your next move?"}, {"role": "assistant", "content": "{\"row\": 0, \"col\": 0}"}]}
+{"messages": [{"role": "user", "content": "Game state: [['X', '', ''], ['', '', ''], ['', '', '']]. You're 'O'. What's your next move?"}, {"role": "assistant", "content": "{\"row\": 1, \"col\": 1}"}]}
+{"messages": [{"role": "user", "content": "Game state: [['X', 'O', 'X'], ['', 'O', ''], ['', '', 'X']]. You're 'O'. What's your next move?"}, {"role": "assistant", "content": "{\"row\": 1, \"col\": 0}"}]}
+{"messages": [{"role": "user", "content": "Game state: [['O', 'X', 'O'], ['X', '', 'X'], ['', '', 'O']]. You're 'O'. What's your next move?"}, {"role": "assistant", "content": "{\"row\": 1, \"col\": 1}"}]}
+{"messages": [{"role": "user", "content": "Game state: [['O', 'X', ''], ['X', 'O', ''], ['', '', 'X']]. You're 'O'. What's your next move?"}, {"role": "assistant", "content": "{\"row\": 0, \"col\": 2}"}]}
+{"messages": [{"role": "user", "content": "Game state: [['', 'X', 'O'], ['X', 'O', ''], ['', '', '']]. You're 'O'. What's your next move?"}, {"role": "assistant", "content": "{\"row\": 2, \"col\": 2}"}]}
+{"messages": [{"role": "user", "content": "Game state: [['X', 'O', 'X'], ['O', 'X', ''], ['', '', 'O']]. You're 'O'. What's your next move?"}, {"role": "assistant", "content": "{\"row\": 1, \"col\": 2}"}]}
+{"messages": [{"role": "user", "content": "Game state: [['X', '', 'O'], ['O', 'X', ''], ['', '', 'X']]. You're 'O'. What's your next move?"}, {"role": "assistant", "content": "{\"row\": 2, \"col\": 1}"}]}
+{"messages": [{"role": "user", "content": "Game state: [['O', 'X', 'X'], ['X', 'O', 'O'], ['X', '', '']]. You're 'O'. What's your next move?"}, {"role": "assistant", "content": "{\"row\": 2, \"col\": 2}"}]}
+{"messages": [{"role": "user", "content": "Game state: [['', '', ''], ['', 'X', ''], ['O', '', 'X']]. You're 'O'. What's your next move?"}, {"role": "assistant", "content": "{\"row\": 0, \"col\": 0}"}]}
