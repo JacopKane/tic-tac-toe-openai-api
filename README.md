@@ -2,6 +2,8 @@
 
 A NestJS-based Tic Tac Toe game that uses OpenAI's GPT models for intelligent gameplay. The AI opponent is trained using fine-tuning to make strategic moves based on the current board state.
 
+The purpose of this repository is to experiment with delegating game mechanics logic into AI, creating lightweight code, and providing a proof of concept for managing complex mechanics on the AI side.
+
 ![Demo](demo.gif)
 
 ## Features

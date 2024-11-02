@@ -4,7 +4,16 @@ import * as blessed from 'blessed';
 import { GameService } from './game/game.service';
 
 async function bootstrap() {
-  const app = await NestFactory.createApplicationContext(AppModule);
+  // Determine if the environment is production
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  // Create the application context with specific logger levels
+  const app = await NestFactory.createApplicationContext(AppModule, {
+    logger: isProduction
+      ? ['error', 'warn'] // Only show errors and warnings in production
+      : ['log', 'error', 'warn', 'debug', 'verbose'], // Show all logs in development
+  });
+
   const gameService = app.get(GameService);
 
   const screen = blessed.screen({
@@ -46,7 +55,7 @@ async function bootstrap() {
 
   const renderBoard = () => {
     const board = gameService.getBoardState();
-    let content = '\n'; // Start with a newline for better centering
+    let content = '\n';
     for (let i = 0; i < 3; i++) {
       content +=
         '  ' + board[i].map((cell) => (cell === '' ? ' ' : cell)).join(' | ');
@@ -75,13 +84,10 @@ async function bootstrap() {
       gameService.playerMove(row, col);
       renderBoard();
 
+      // Check if the game is over after player's move
       if (gameService.isGameOver()) {
-        const winner = gameService.getWinner();
-        statusBox.setContent(
-          winner === 'Draw'
-            ? 'Game Over - Draw!'
-            : `Game Over - ${winner} wins!`,
-        );
+        const status = gameService.getGameStatus();
+        statusBox.setContent(status);
         screen.render();
         return;
       }
@@ -92,13 +98,10 @@ async function bootstrap() {
       await gameService.aiMove();
       renderBoard();
 
+      // Check if the game is over after AI's move
       if (gameService.isGameOver()) {
-        const winner = gameService.getWinner();
-        statusBox.setContent(
-          winner === 'Draw'
-            ? 'Game Over - Draw!'
-            : `Game Over - ${winner} wins!`,
-        );
+        const status = gameService.getGameStatus();
+        statusBox.setContent(status);
         screen.render();
         return;
       }

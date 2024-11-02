@@ -1,13 +1,12 @@
 // src/game/game.service.ts
 
 import { Injectable, Logger, Inject } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { OpenAI } from 'openai';
 import { callOpenAIWithRetry } from './utils';
 
-interface AIMove {
-  row: number;
-  col: number;
+interface AIResponse {
+  move: { row: number; col: number } | null;
+  status: string;
 }
 
 @Injectable()
@@ -19,11 +18,10 @@ export class GameService {
     ['', '', ''],
   ];
   private currentPlayer: 'X' | 'O' = 'X';
+  private gameOver: boolean = false;
+  private gameStatus: string = '';
 
-  constructor(
-    private configService: ConfigService,
-    @Inject('OpenAI') private readonly openai: OpenAI,
-  ) {}
+  constructor(@Inject('OpenAI') private readonly openai: OpenAI) {}
 
   getBoardState(): string[][] {
     return this.board.map((row) => [...row]);
@@ -49,32 +47,56 @@ export class GameService {
         {
           role: 'system' as const,
           content:
-            'You are a Tic Tac Toe AI player. Analyze the board and make the best move for O.',
+            'You are an expert Tic Tac Toe AI engine. After each move, analyze the game board to determine if the game is over due to a win or a draw. Handle all game logic, including move validation, game status checking, and determining the winner. Respond with JSON containing "move" (or null if no move) and "status".',
         },
         {
           role: 'user' as const,
           content: `Game state: ${JSON.stringify(
             this.board,
-          )}. You're 'O'. What's your next move? Respond with JSON {"row": number, "col": number}.`,
+          )}, Your move as '${this.currentPlayer}'.`,
         },
       ];
 
-      const aiResponse = await callOpenAIWithRetry(this.openai, messages);
+      const aiResponseText = await callOpenAIWithRetry(this.openai, messages);
 
-      let aiMove: AIMove;
+      let aiResponse: AIResponse;
       try {
-        aiMove = JSON.parse(aiResponse);
+        aiResponse = JSON.parse(aiResponseText);
       } catch (error) {
         this.logger.error('Failed to parse AI response', error);
         throw new Error('Invalid AI response format');
       }
 
-      if (!this.isValidMove(aiMove.row, aiMove.col)) {
-        throw new Error('Invalid AI move');
+      if (!aiResponse.move && !aiResponse.status) {
+        this.logger.log(aiResponse, JSON.stringify(aiResponse));
+        throw new Error('AI response is missing both move and status');
       }
 
-      this.board[aiMove.row][aiMove.col] = 'O';
-      this.currentPlayer = 'X';
+      // Handle game status
+      if (aiResponse.status) {
+        this.logger.log(`Game Status: ${aiResponse.status}`);
+        this.gameStatus = aiResponse.status;
+        if (
+          aiResponse.status.startsWith('Game over') ||
+          aiResponse.status.includes('wins') ||
+          aiResponse.status.includes('Draw')
+        ) {
+          this.gameOver = true;
+        }
+      }
+
+      // Proceed only if there is a move to make
+      if (aiResponse.move) {
+        const { row, col } = aiResponse.move;
+        if (!this.isValidMove(row, col)) {
+          throw new Error('Invalid AI move');
+        }
+        this.board[row][col] = this.currentPlayer;
+        this.currentPlayer = this.currentPlayer === 'X' ? 'O' : 'X';
+      } else {
+        // No move to make (game over)
+        return;
+      }
     } catch (error) {
       this.logger.error('Error during AI move', error);
       throw new Error('Failed to make AI move');
@@ -82,57 +104,11 @@ export class GameService {
   }
 
   isGameOver(): boolean {
-    const lines = [
-      // Rows
-      [this.board[0][0], this.board[0][1], this.board[0][2]],
-      [this.board[1][0], this.board[1][1], this.board[1][2]],
-      [this.board[2][0], this.board[2][1], this.board[2][2]],
-      // Columns
-      [this.board[0][0], this.board[1][0], this.board[2][0]],
-      [this.board[0][1], this.board[1][1], this.board[2][1]],
-      [this.board[0][2], this.board[1][2], this.board[2][2]],
-      // Diagonals
-      [this.board[0][0], this.board[1][1], this.board[2][2]],
-      [this.board[0][2], this.board[1][1], this.board[2][0]],
-    ];
-
-    for (const line of lines) {
-      if (
-        line.every((cell) => cell === 'X') ||
-        line.every((cell) => cell === 'O')
-      ) {
-        return true;
-      }
-    }
-
-    return this.board.every((row) => row.every((cell) => cell !== ''));
+    return this.gameOver;
   }
 
-  getWinner(): 'X' | 'O' | 'Draw' | null {
-    const lines = [
-      // Rows
-      [this.board[0][0], this.board[0][1], this.board[0][2]],
-      [this.board[1][0], this.board[1][1], this.board[1][2]],
-      [this.board[2][0], this.board[2][1], this.board[2][2]],
-      // Columns
-      [this.board[0][0], this.board[1][0], this.board[2][0]],
-      [this.board[0][1], this.board[1][1], this.board[2][1]],
-      [this.board[0][2], this.board[1][2], this.board[2][2]],
-      // Diagonals
-      [this.board[0][0], this.board[1][1], this.board[2][2]],
-      [this.board[0][2], this.board[1][1], this.board[2][0]],
-    ];
-
-    for (const line of lines) {
-      if (line.every((cell) => cell === 'X')) return 'X';
-      if (line.every((cell) => cell === 'O')) return 'O';
-    }
-
-    if (this.board.every((row) => row.every((cell) => cell !== ''))) {
-      return 'Draw';
-    }
-
-    return null;
+  getGameStatus(): string {
+    return this.gameStatus;
   }
 
   resetGame(): void {
@@ -142,5 +118,7 @@ export class GameService {
       ['', '', ''],
     ];
     this.currentPlayer = 'X';
+    this.gameOver = false;
+    this.gameStatus = '';
   }
 }
